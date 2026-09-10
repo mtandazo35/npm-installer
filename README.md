@@ -98,3 +98,13 @@ Los datos viven en `/root/npm/data` y los certificados en `/root/npm/letsencrypt
 
 - Los puertos 80 y 443 deben estar libres en el host y abiertos en el firewall para que funcione Let's Encrypt.
 - Docker publica puertos saltándose UFW; si el host debe filtrar, usa la cadena `DOCKER-USER`.
+
+## Extras
+
+- [`extras/restrict-docker-ports.sh`](extras/restrict-docker-ports.sh) — cierra el panel `:81` (u otros puertos publicados por Docker) a una allowlist. **UFW no puede hacerlo**: Docker publica saltándose la cadena INPUT, así que la regla va en `DOCKER-USER`. Usa `--ctorigdstport` (con `--dport` no coincide, porque FORWARD se evalúa después del DNAT) y `--ctdir ORIGINAL` (sin él caen también las respuestas del contenedor y el servicio se cuelga).
+
+```bash
+PORTS="81" ALLOW="10.0.0.0/8 192.168.0.0/16" /usr/local/sbin/restrict-docker-ports.sh
+```
+
+Las reglas de `iptables` no sobreviven al reboot: si lo dejas fijo, añade un servicio systemd que lo reaplique al arrancar.
